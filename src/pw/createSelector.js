@@ -1,16 +1,26 @@
+type TSelectResult = {
+  result: any,
+  loading: boolean,
+  error?: string
+};
+
 function createCollectionConnector(sliceName: string, convertData) {
-  return function createSelector(getState, dispatch): ISelector {
+  return function createSelector(dispatch) {
 
     const actions = {
       setData(x) {
         dispatch(x);
       }
     };
-    let state: any = getState()[sliceName];
-    let data: any;
-    let meta: any;
+    let state;
+    let data;
+    let meta;
     return {
-      run(state: any, props: any) {
+      run(fullState, props): TSelectResult {
+        const nextState = fullState[sliceName];
+        if (nextState !== state) {
+          state = nextState;
+        }
 
       }
     };
