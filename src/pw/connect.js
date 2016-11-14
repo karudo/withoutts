@@ -61,9 +61,6 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         }
         this.subscription.trySubscribe();
         this.runSelector(this.props);
-        // if (this.selector.shouldComponentUpdate) {
-        //  this.forceUpdate();
-        // }
       }
 
       componentWillReceiveProps(nextProps: TOwnProps) {
@@ -72,8 +69,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         }
       }
 
-      shouldComponentUpdate(a, b) {
-        console.log(a, b);
+      shouldComponentUpdate(props, state) {
         return true;
       }
 
@@ -114,7 +110,9 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
       }
 
       runSelector(props, after) {
-        const nextState = this.selector(this.store.getState(), props);
+        const nextState = {
+          childProps: this.selector(this.store.getState(), props)
+        };
         this.setState(nextState, after);
         console.log(nextState);
       }
@@ -126,7 +124,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         if (selector.error) {
           throw selector.error;
         } else {
-          return <WrappedComponent {...this.props} {...this.selector.props} />;
+          return <WrappedComponent {...this.props}/>;
         }
       }
     }
