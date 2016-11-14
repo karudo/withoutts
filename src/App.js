@@ -12,7 +12,7 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to New PW Panel</h2>
         </div>
-        <Test/>
+        <Test awe={777}/>
       </div>
     );
   }

@@ -60,7 +60,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
           return;
         }
         this.subscription.trySubscribe();
-        this.selector.run(this.props);
+        this.runSelector(this.props);
         // if (this.selector.shouldComponentUpdate) {
         //  this.forceUpdate();
         // }
@@ -68,13 +68,14 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
 
       componentWillReceiveProps(nextProps: TOwnProps) {
         if (!isEqual(nextProps, this.props)) {
-          this.selector.run(nextProps);
+          this.runSelector(nextProps);
         }
       }
 
-      // shouldComponentUpdate() {
-      //   return this.selector.shouldComponentUpdate;
-      // }
+      shouldComponentUpdate(a, b) {
+        console.log(a, b);
+        return true;
+      }
 
       componentWillUnmount() {
         if (this.subscription) {
@@ -83,7 +84,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         this.subscription = undefined;
         this.store = undefined;
         this.parentSub = undefined;
-        this.selector.run = () => ({});
+        this.selector = () => ({});
       }
 
       initSelector() {
@@ -91,10 +92,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         // const sourceSelector = (state: TPWState, props: TOwnProps) => {
         //   return Object.keys(connectors).map(s => connectors[s].select(state, props));
         // };
-        // this.selector = createSelector(connectors, this.store, this.props);
-        this.selector = {
-          run() {}
-        };
+        this.selector = createSelector(connectors, this.store.dispatch);
       }
 
       initSubscription() {
@@ -113,6 +111,12 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
             }
           });
         }
+      }
+
+      runSelector(props, after) {
+        const nextState = this.selector(this.store.getState(), props);
+        this.setState(nextState, after);
+        console.log(nextState);
       }
 
       render() {

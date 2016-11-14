@@ -3,8 +3,8 @@ import {createStore, combineReducers} from 'redux';
 //declare const window: any;
 
 const uuuReducers = {
-  collection: (state = {items: [], meta: {}}, action) => {
-
+  collection: (state = {data: [], meta: {}}, action) => {
+    console.log(state, action);
     return state;
   }
 };

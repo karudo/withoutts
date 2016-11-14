@@ -14,5 +14,5 @@ class Test extends Component {
 }
 
 export default connect({
-  coll: connCollection()
+  coll: connCollection((s) => ({q : 2}))
 })(Test);
