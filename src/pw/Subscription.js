@@ -43,7 +43,7 @@ function createListenerCollection(): ListenerCollection {
       }
       next.push(listener);
 
-      return () => {
+      return function unsubscribe() {
         if (!isSubscribed || cleared) {
           return;
         }

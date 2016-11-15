@@ -107,7 +107,6 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
           haveOwnPropsChanged: (props !== this.props) && !isEqual(props, this.props)
         };
         this.setState(nextState, after);
-        console.log(nextState);
       }
 
       render() {

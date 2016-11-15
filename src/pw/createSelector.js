@@ -58,7 +58,7 @@ export function connCollection(convertData = (x) => x) {
       slice = nextSlice;
       converted = {
         ...slice,
-        data: convertData(slice.data, props)
+        data: slice.data && convertData(slice.data, props)
       };
     }
     return converted;
