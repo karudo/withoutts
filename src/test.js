@@ -5,8 +5,9 @@ import {connCollection} from './pw/createSelector';
 
 class Test extends Component {
   render() {
+    console.log(this.props);
     return (
-      <div className="App">
+      <div className="App" onClick={() => this.props.coll.actions.push(11)}>
         Rabotae0?
       </div>
     );

@@ -52,7 +52,7 @@ function createCollectionConnector(actionCreators, pickData) {
 export function connCollection(convertData = (x) => x) {
   let slice = {};
   let converted = {};
-  return createCollectionConnector({}, function (fullState, props) {
+  return createCollectionConnector({push: (q) => ({type: 'push', payload: q}) }, function (fullState, props) {
     const nextSlice = fullState['collection'];
     if (nextSlice !== slice) {
       slice = nextSlice;

@@ -4,13 +4,17 @@ import {createStore, combineReducers} from 'redux';
 
 const uuuReducers = {
   collection: (state = {data: [], meta: {}}, action) => {
-    console.log(state, action);
+    if (action.type === 'push') {
+      state = {
+        ...state,
+        data: [...state.data, action.payload]
+      };
+    }
     return state;
   }
 };
 
 const reducers = combineReducers(uuuReducers);
-
 
 const recoverState = () => ({});
 

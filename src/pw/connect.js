@@ -45,6 +45,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         this.store = this.context[storeKey];
         this.parentSub = this.context[subscriptionKey];
 
+        this.state = {};
         this.initSelector();
         this.initSubscription();
       }
@@ -95,37 +96,22 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
         if (shouldHandleStateChanges) {
           const subscription = this.subscription = new Subscription(this.store, this.parentSub);
           const notifyNestedSubs = subscription.notifyNestedSubs.bind(subscription);
-          const dummyState = {};
 
-          subscription.setOnStateChange(() => {
-            this.selector.run(this.props);
-
-            if (this.selector.shouldComponentUpdate) {
-              this.setState(dummyState, notifyNestedSubs);
-            } else {
-              notifyNestedSubs();
-            }
-          });
+          subscription.setOnStateChange(() => this.runSelector(this.props, notifyNestedSubs));
         }
       }
 
       runSelector(props, after) {
         const nextState = {
-          childProps: this.selector(this.store.getState(), props)
+          childProps: this.selector(this.store.getState(), props),
+          haveOwnPropsChanged: (props !== this.props) && !isEqual(props, this.props)
         };
         this.setState(nextState, after);
         console.log(nextState);
       }
 
       render() {
-        const selector = this.selector;
-        // selector.shouldComponentUpdate = false;
-
-        if (selector.error) {
-          throw selector.error;
-        } else {
-          return <WrappedComponent {...this.props}/>;
-        }
+        return <WrappedComponent {...this.props} {...this.state.childProps}/>;
       }
     }
 
