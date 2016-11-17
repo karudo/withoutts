@@ -1,27 +1,46 @@
 export const code = 'collection';
 
+export type data = {
+  code: string;
+  name: string;
+};
+
+export type dataUpdate = {
+  code?: string;
+  name?: number;
+};
+
+export type meta = {
+  loading: boolean
+};
+
+export type metaUpdate = {
+  loading?: boolean
+};
+
 export type dataActions = {
-  set: (update: {code?: string, name?: string}) => void
+  set: (update: dataUpdate) => void
 }
 
-export type metaAction = {
-  set: (update: {code?: string, name?: string}) => void
+export type metaActions = {
+  set: (update: metaUpdate) => void
+}
+
+export type collection = {
+  data: data,
+  meta: meta,
+  actions: dataActions,
+  metaActions: metaActions
 }
 
 export const dataReducers = {
-  set(data, update) {
-    return {
-      ...data,
-      ...update
-    }
+  set(data: data, update: dataUpdate) {
+    return Object.assign({}, data, update);
   },
 };
 
 export const metaReducers = {
-  set(meta, update) {
-    return {
-      ...meta,
-      ...update
-    }
-  }
+  set(meta: meta, update: metaUpdate): meta {
+    return Object.assign({}, meta, update);
+  },
 };

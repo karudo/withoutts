@@ -44,9 +44,13 @@ class Selector {
   }
 }
 
+function createActions(actionCreators, dispatch) {
+  return _.mapValues(actionCreators, actions => bindActionCreators(actions, dispatch));
+}
+
 function createCollectionConnector(actionCreators, pickData) {
   return function createSelector(dispatch) {
-    const actions = bindActionCreators(actionCreators, dispatch);
+    const actions = createActions(actionCreators, dispatch);
     return new Selector(pickData, actions);
   };
 }
