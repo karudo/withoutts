@@ -1,11 +1,27 @@
 export const code = 'collection';
 
-export type actions = {
-  set: (a: {code: string}) => void
+export type dataActions = {
+  set: (update: {code?: string, name?: string}) => void
 }
 
-export const actions: actions = {
-  set(a): actions {
-    return a;
-  }
+export type metaAction = {
+  set: (update: {code?: string, name?: string}) => void
 }
+
+export const dataReducers = {
+  set(data, update) {
+    return {
+      ...data,
+      ...update
+    }
+  },
+};
+
+export const metaReducers = {
+  set(meta, update) {
+    return {
+      ...meta,
+      ...update
+    }
+  }
+};

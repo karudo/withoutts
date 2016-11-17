@@ -1,6 +1,8 @@
 import {bindActionCreators} from 'redux';
 import _ from 'lodash';
 
+import {dataReducers, metaReducers} from './collections/base';
+
 type TSelectResult = {
   data: any,
   meta: {loading?: boolean},
