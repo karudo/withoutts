@@ -1,4 +1,3 @@
-import {bindActionCreators} from 'redux';
 import _ from 'lodash';
 
 import {reducers} from './collections/base';

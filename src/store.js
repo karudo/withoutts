@@ -8,8 +8,6 @@ import {code, reducers as baseReducers} from './pw/collections/base';
 const cReducers = _.mapValues(baseReducers, (funcs, type) => {
   return Object.keys(funcs).reduce((acc, funName) => {
     acc[`${code}:${type}:${funName}`] = (state, params) => {
-      console.log('sss', state, type)
-      //return funcs[funName](state[type], params);
       return {
         ...state,
         [type]: funcs[funName](state[type], params)

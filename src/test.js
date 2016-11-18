@@ -7,7 +7,7 @@ class Test extends Component {
   render() {
     console.log(this.props);
     return (
-      <div className="App" onClick={() => this.props.coll.actions.set({a: 1})}>
+      <div className="App" onClick={() => this.props.hhh.actions.set({a: 1})}>
         Rabotae0?
       </div>
     );
@@ -15,5 +15,5 @@ class Test extends Component {
 }
 
 export default connect({
-  coll: connCollection()
+  hhh: connCollection()
 })(Test);
