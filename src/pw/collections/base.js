@@ -34,7 +34,8 @@ export type collection = {
 }
 
 export const dataReducers = {
-  set(data: data, update: dataUpdate) {
+  set(data: data, update: dataUpdate): data {
+    console.log(data, update)
     return Object.assign({}, data, update);
   },
 };
@@ -43,4 +44,9 @@ export const metaReducers = {
   set(meta: meta, update: metaUpdate): meta {
     return Object.assign({}, meta, update);
   },
+};
+
+export const reducers = {
+  data: dataReducers,
+  meta: metaReducers,
 };

@@ -1,14 +1,34 @@
 import {createStore, combineReducers} from 'redux';
+import _ from 'lodash';
 // import { reducers } from './reducers/index';
 //declare const window: any;
 
-const uuuReducers = {
-  collection: (state = {data: [], meta: {}}, action) => {
-    if (action.type === 'push') {
-      state = {
+import {code, reducers as baseReducers} from './pw/collections/base';
+
+const cReducers = _.mapValues(baseReducers, (funcs, type) => {
+  return Object.keys(funcs).reduce((acc, funName) => {
+    acc[`${code}:${type}:${funName}`] = (state, params) => {
+      console.log('sss', state, type)
+      //return funcs[funName](state[type], params);
+      return {
         ...state,
-        data: [...state.data, action.payload]
+        [type]: funcs[funName](state[type], params)
       };
+    };
+    return acc;
+  }, {})
+});
+let collReducers = {
+  ...cReducers.data,
+  ...cReducers.meta,
+};
+
+console.log(collReducers);
+
+const uuuReducers = {
+  collection: (state = {data: {}, meta: {}}, action) => {
+    if (collReducers[action.type]) {
+      return collReducers[action.type](state, action.payload);
     }
     return state;
   }

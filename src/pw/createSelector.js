@@ -1,7 +1,7 @@
 import {bindActionCreators} from 'redux';
 import _ from 'lodash';
 
-import {dataReducers, metaReducers} from './collections/base';
+import {reducers} from './collections/base';
 
 type TSelectResult = {
   data: any,
@@ -27,7 +27,7 @@ class Selector {
   constructor(pickData, actions) {
     this.pickData = pickData;
     this.actions = actions;
-    this.result = {actions};
+    this.result = {...actions};
   }
 
   run(fullState, props): TSelectResult {
@@ -35,7 +35,7 @@ class Selector {
     if (nextState !== this.state) {
       this.state = nextState;
       this.result = {
-        actions: this.actions,
+        ...this.actions,
         ...this.state
       };
     }
@@ -44,22 +44,29 @@ class Selector {
   }
 }
 
-function createActions(actionCreators, dispatch) {
-  return _.mapValues(actionCreators, actions => bindActionCreators(actions, dispatch));
+function createActions(code, reducers, dispatch) {
+  return {
+    actions: Object.keys(reducers.data).reduce((acc, actionName) => {
+      acc[actionName] = (params) => dispatch({type: `${code}:data:${actionName}`, payload: params});
+      return acc;
+    }, {}),
+    metaActions: {}
+  }; //_.mapValues(actionCreators, actions => bindActionCreators(actions, dispatch));
 }
 
-function createCollectionConnector(actionCreators, pickData) {
+function createCollectionConnector(code, actionCreators, pickData) {
   return function createSelector(dispatch) {
-    const actions = createActions(actionCreators, dispatch);
+    const actions = createActions(code, actionCreators, dispatch);
     return new Selector(pickData, actions);
   };
 }
 
 export function connCollection(convertData = (x) => x) {
+  const code = 'collection';
   let slice = {};
   let converted = {};
-  return createCollectionConnector({push: (q) => ({type: 'push', payload: q}) }, function (fullState, props) {
-    const nextSlice = fullState['collection'];
+  return createCollectionConnector(code, reducers, function (fullState, props) {
+    const nextSlice = fullState[code];
     if (nextSlice !== slice) {
       slice = nextSlice;
       converted = {
