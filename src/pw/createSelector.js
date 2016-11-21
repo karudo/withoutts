@@ -50,14 +50,16 @@ function mapArrayToObj(arr, cb) {
   }, {});
 }
 
+function qwe(prefix, reducers, name) {
+  return mapArrayToObj(Object.keys(reducers[name]), (actionName) => (
+    (params) => dispatch({type: `${prefix}:${name}:${actionName}`, payload: params})
+  ))
+}
+
 function createActions(prefix, reducers, dispatch) {
   return {
-    actions: mapArrayToObj(Object.keys(reducers.data), (actionName) => (
-      (params) => dispatch({type: `${prefix}:data:${actionName}`, payload: params})
-    )),
-    metaActions: mapArrayToObj(Object.keys(reducers.meta), (actionName) => (
-      (params) => dispatch({type: `${prefix}:meta:${actionName}`, payload: params})
-    ))
+    actions: qwe(prefix, reducers, 'data'),
+    metaActions: qwe(prefix, reducers, 'meta')
   };
 }
 
