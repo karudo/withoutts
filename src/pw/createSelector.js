@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {reducers} from './collections/base';
+import {reducers as baseReducers} from './collections/base';
 
 type TSelectResult = {
   data: any,
@@ -43,28 +43,35 @@ class Selector {
   }
 }
 
-function createActions(code, reducers, dispatch) {
-  return {
-    actions: Object.keys(reducers.data).reduce((acc, actionName) => {
-      acc[actionName] = (params) => dispatch({type: `${code}:data:${actionName}`, payload: params});
-      return acc;
-    }, {}),
-    metaActions: {}
-  }; //_.mapValues(actionCreators, actions => bindActionCreators(actions, dispatch));
+function mapArrayToObj(arr, cb) {
+  return arr.reduce((acc, key) => {
+    acc[key] = cb(key);
+    return acc;
+  }, {});
 }
 
-function createCollectionConnector(code, actionCreators, pickData) {
+function createActions(prefix, reducers, dispatch) {
+  return {
+    actions: mapArrayToObj(Object.keys(reducers.data), (actionName) => (
+      (params) => dispatch({type: `${prefix}:data:${actionName}`, payload: params})
+    )),
+    metaActions: mapArrayToObj(Object.keys(reducers.meta), (actionName) => (
+      (params) => dispatch({type: `${prefix}:meta:${actionName}`, payload: params})
+    ))
+  };
+}
+
+function createSelectorCreator(code, actionCreators, pickData) {
   return function createSelector(dispatch) {
     const actions = createActions(code, actionCreators, dispatch);
     return new Selector(pickData, actions);
   };
 }
 
-export function connCollection(convertData = (x) => x) {
-  const code = 'collection';
+function createPickCollection(code, convertData) {
   let slice = {};
   let converted = {};
-  return createCollectionConnector(code, reducers, function (fullState, props) {
+  return function pickCollection(fullState, props) {
     const nextSlice = fullState[code];
     if (nextSlice !== slice) {
       slice = nextSlice;
@@ -74,5 +81,14 @@ export function connCollection(convertData = (x) => x) {
       };
     }
     return converted;
-  });
+  };
+}
+
+function createConnectorForCollection(code, reducers, convertData) {
+  return createSelectorCreator(code, reducers, createPickCollection(code, convertData));
+
+}
+
+export function connCollection(convertData = (x) => x) {
+  return createConnectorForCollection('collection', baseReducers, convertData)
 }

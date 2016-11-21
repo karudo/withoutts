@@ -35,7 +35,6 @@ export type collection = {
 
 export const dataReducers = {
   set(data: data, update: dataUpdate): data {
-    console.log(data, update)
     return Object.assign({}, data, update);
   },
 };
