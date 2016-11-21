@@ -43,30 +43,23 @@ class Selector {
   }
 }
 
-function mapArrayToObj(arr, cb) {
-  return arr.reduce((acc, key) => {
-    acc[key] = cb(key);
-    return acc;
-  }, {});
-}
-
-function qwe(prefix, reducers, name) {
-  return mapArrayToObj(Object.keys(reducers[name]), (actionName) => (
-    (params) => dispatch({type: `${prefix}:${name}:${actionName}`, payload: params})
-  ))
+function mapDispatchToActons(prefix, reducers, name, dispatch) {
+  const actionNames = Object.keys(reducers[name]);
+  return _.zipObject(actionNames, actionNames.map(actionName => {
+    return (params) => dispatch({type: `${prefix}:${name}:${actionName}`, payload: params});
+  }))
 }
 
 function createActions(prefix, reducers, dispatch) {
   return {
-    actions: qwe(prefix, reducers, 'data'),
-    metaActions: qwe(prefix, reducers, 'meta')
+    actions: mapDispatchToActons(prefix, reducers, 'data', dispatch),
+    metaActions: mapDispatchToActons(prefix, reducers, 'meta', dispatch)
   };
 }
 
 function createSelectorCreator(code, actionCreators, pickData) {
   return function createSelector(dispatch) {
-    const actions = createActions(code, actionCreators, dispatch);
-    return new Selector(pickData, actions);
+    return new Selector(pickData, createActions(code, actionCreators, dispatch));
   };
 }
 
