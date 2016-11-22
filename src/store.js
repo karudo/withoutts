@@ -5,25 +5,25 @@ import _ from 'lodash';
 
 import {code, reducers as baseReducers} from './pw/collections/base';
 
-const cReducers = _.mapValues(baseReducers, (funcs, type) => {
-  return Object.keys(funcs).reduce((acc, funName) => {
+function createModelReducer(code) {
+
+}
+const collReducers = _.mapValues(baseReducers, (funcs, type) => {
+  const acc = {};
+  Object.keys(funcs).forEach((funName) => {
     acc[`${code}:${type}:${funName}`] = (state, params) => {
       return {
         ...state,
         [type]: funcs[funName](state[type], params)
       };
     };
-    return acc;
-  }, {})
+  });
+  return acc;
 });
-let collReducers = {
-  ...cReducers.data,
-  ...cReducers.meta,
-};
 
 console.log(collReducers);
 
-const uuuReducers = {
+const allReducers = {
   collection: (state = {data: {}, meta: {}}, action) => {
     if (collReducers[action.type]) {
       return collReducers[action.type](state, action.payload);
@@ -32,7 +32,7 @@ const uuuReducers = {
   }
 };
 
-const reducers = combineReducers(uuuReducers);
+const reducers = combineReducers(allReducers);
 
 const recoverState = () => ({});
 
