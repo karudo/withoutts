@@ -10,15 +10,8 @@ type TSelectResult = {
 
 export function createSelector(connectors, dispatch) {
   const selectors = _.mapValues(connectors, (createSelector) => createSelector(dispatch));
-  const selects = {};
-  const result = {};
   return function selector(state, props) {
-    const nextSelects = _.mapValues(selectors, (conn) => conn.run(state, props));
-    //if (!_.isEqual(nextSelects, selects)) {
-    //
-    //}
-    console.log(nextSelects);
-    return nextSelects;
+    return _.mapValues(selectors, (conn) => conn.run(state, props));
   }
 }
 

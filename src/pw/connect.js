@@ -1,6 +1,6 @@
 import * as React from 'react';
 const {Component, PropTypes} = React;
-import {isEqual} from 'lodash';
+import _ from 'lodash';
 
 import storeShape from './storeShape';
 
@@ -65,7 +65,7 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
       }
 
       componentWillReceiveProps(nextProps: TOwnProps) {
-        if (!isEqual(nextProps, this.props)) {
+        if (!_.isEqual(nextProps, this.props)) {
           this.runSelector(nextProps);
         }
       }
@@ -102,10 +102,17 @@ export function connect<TOwnProps>(connectors: TConnectorsObject, settings: TCon
       }
 
       runSelector(props, after) {
+        const nextChildProps = this.selector(this.store.getState(), props);
         const nextState = {
-          childProps: this.selector(this.store.getState(), props),
-          haveOwnPropsChanged: (props !== this.props) && !isEqual(props, this.props)
+          haveOwnPropsChanged: !_.isEqual(props, this.props)
         };
+        if (!_.isEqual(nextChildProps, this.state.childProps)) {
+          nextState.childProps = nextChildProps;
+          _.forEach(nextChildProps, coll => {
+            if (!coll.data) {
+            }
+          })
+        }
         this.setState(nextState, after);
       }
 
