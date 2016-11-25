@@ -18,19 +18,18 @@ export type metaUpdate = {
   loading?: boolean
 };
 
-export type dataActions = {
+export type dataCalls = {
   set: (update: dataUpdate) => void
 }
 
-export type metaActions = {
+export type metaCalls = {
   set: (update: metaUpdate) => void
 }
 
 export type collection = {
   data: data,
   meta: meta,
-  actions: dataActions,
-  metaActions: metaActions
+  actions: {},
 }
 
 export const dataReducers = {
@@ -50,12 +49,11 @@ export const reducers = {
   meta: metaReducers,
 };
 
-
 export const actions = {
   setName(name) {
-    this.actions.data.set({name})
+    this.calls.data.set({name})
   },
   setLoading(loading) {
-    this.actions.meta.set({loading});
+    this.calls.meta.set({loading});
   }
 };

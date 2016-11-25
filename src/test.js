@@ -7,7 +7,7 @@ class Test extends Component {
   render() {
     console.log(this.props);
     return (
-      <div className="App" onClick={() => this.props.hhh.actions.set({a: 1})}>
+      <div className="App" onClick={() => this.props.hhh.actions.setLoading(true)}>
         Rabotae0?
       </div>
     );

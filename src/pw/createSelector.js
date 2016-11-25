@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {reducers as baseReducers} from './collections/base';
+import {code as baseCode, reducers as baseReducers, actions as baseActions} from './collections/base';
 
 type TSelectResult = {
   data: any,
@@ -10,24 +10,27 @@ type TSelectResult = {
 
 export function createSelector(connectors, dispatch) {
   const selectors = _.mapValues(connectors, (createSelector) => createSelector(dispatch));
-  return function selector(state, props) {
-    return _.mapValues(selectors, (conn) => conn.run(state, props));
+  return function selector(fullState, props) {
+    return _.mapValues(selectors, conn => conn.select(fullState, props));
   }
 }
 
 class Selector {
-  constructor(pickData, actions) {
+  state: any;
+
+  constructor(pickData, calls, actions) {
     this.pickData = pickData;
-    this.actions = actions;
-    this.result = {...actions};
+    this.calls = calls;
+    this.actions = _.mapValues(actions, funcAction => arg => funcAction.call(this, arg));
+    this.result = {actions: this.actions};
   }
 
-  run(fullState, props): TSelectResult {
+  select(fullState, props): TSelectResult {
     const nextState = this.pickData(fullState, props);
     if (nextState !== this.state) {
       this.state = nextState;
       this.result = {
-        ...this.actions,
+        actions: this.actions,
         ...this.state
       };
     }
@@ -36,23 +39,27 @@ class Selector {
   }
 }
 
-function mapDispatchToActons(prefix, reducers, name, dispatch) {
-  const actionNames = Object.keys(reducers[name]);
-  return _.zipObject(actionNames, actionNames.map(actionName => {
-    return (params) => dispatch({type: `${prefix}:${name}:${actionName}`, payload: params});
+function createCallsFromReducers(prefix, reducers, dispatch) {
+  const callNames = Object.keys(reducers);
+  return _.zipObject(callNames, callNames.map(actionName => {
+    return (params) => dispatch({type: `${prefix}:${actionName}`, payload: params});
   }))
 }
 
-function createActions(prefix, reducers, dispatch) {
-  return {
-    actions: mapDispatchToActons(prefix, reducers, 'data', dispatch),
-    metaActions: mapDispatchToActons(prefix, reducers, 'meta', dispatch)
-  };
+function createCalls(code, reducers, dispatch) {
+  return _.mapValues(
+    reducers,
+    (subReducers, type) => createCallsFromReducers(`${code}:${type}`, subReducers, dispatch)
+  );
 }
 
-function createSelectorCreator(code, actionCreators, pickData) {
+function createSelectorCreator(code, reducers, actions, pickData) {
   return function createSelector(dispatch) {
-    return new Selector(pickData, createActions(code, actionCreators, dispatch));
+    return new Selector(
+      pickData,
+      createCalls(code, reducers, dispatch),
+      actions
+    );
   };
 }
 
@@ -72,11 +79,14 @@ function createPickCollection(code, convertData) {
   };
 }
 
-function createConnectorForCollection(code, reducers, convertData) {
-  return createSelectorCreator(code, reducers, createPickCollection(code, convertData));
-
+function createConnectorForCollection(code, reducers, actions, convertData) {
+  return createSelectorCreator(
+    code,
+    reducers,
+    actions, createPickCollection(code, convertData)
+  );
 }
 
 export function connCollection(convertData = (x) => x) {
-  return createConnectorForCollection('collection', baseReducers, convertData)
+  return createConnectorForCollection(baseCode, baseReducers, baseActions, convertData)
 }
