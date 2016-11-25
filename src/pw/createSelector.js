@@ -83,7 +83,8 @@ function createConnectorForCollection(code, reducers, actions, convertData) {
   return createSelectorCreator(
     code,
     reducers,
-    actions, createPickCollection(code, convertData)
+    actions,
+    createPickCollection(code, convertData)
   );
 }
 
