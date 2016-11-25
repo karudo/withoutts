@@ -49,3 +49,13 @@ export const reducers = {
   data: dataReducers,
   meta: metaReducers,
 };
+
+
+export const actions = {
+  setName(name) {
+    this.actions.data.set({name})
+  },
+  setLoading(loading) {
+    this.actions.meta.set({loading});
+  }
+};
