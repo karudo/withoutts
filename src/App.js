@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 
 import Test from './test';
+import Form from './pw/form'
 
 class App extends Component {
   render() {
@@ -13,6 +14,7 @@ class App extends Component {
           <h2>Welcome to New PW Panel</h2>
         </div>
         <Test awe={777}/>
+        <Form/>
       </div>
     );
   }

@@ -15,7 +15,7 @@ type ListenerCollection = {
   subscribe: (listener: VoidFunction) => VoidFunction
 }
 
-function createListenerCollection(): ListenerCollection {
+export function createListenerCollection(): ListenerCollection {
   type Listeners = VoidFunction[];
 
   let current: Listeners = [];
