@@ -9,7 +9,7 @@ type TSelectResult = {
 };
 
 export function createSelector(connectors, dispatch) {
-  const selectors = _.mapValues(connectors, (createSelector) => createSelector(dispatch));
+  const selectors = _.mapValues(connectors, createSelector => createSelector(dispatch));
   return function selector(fullState, props) {
     return _.mapValues(selectors, conn => conn.select(fullState, props));
   }
@@ -21,7 +21,7 @@ class Selector {
   constructor(pickData, calls, actions) {
     this.pickData = pickData;
     this.calls = calls;
-    this.actions = _.mapValues(actions, funcAction => arg => funcAction.call(this, arg));
+    this.actions = _.mapValues(actions, funcAction => (...args) => funcAction.apply(this, args));
     this.result = {actions: this.actions};
   }
 
@@ -39,10 +39,33 @@ class Selector {
   }
 }
 
+function immSetArr(curObj, pathArr, value) {
+  const [index] = pathArr;
+  const newValue = pathArr.length > 1
+    ? immSetArr(curObj[index], pathArr.slice(1), value)
+    : value;
+  let retObj;
+  if (Array.isArray(curObj)) {
+    retObj = curObj.slice();
+    retObj[index] = newValue;
+  }
+  else {
+    retObj = {
+      ...curObj,
+      [index]: newValue
+    };
+  }
+  return retObj;
+}
+
+function immSet(obj, path, value) {
+  return immSetArr(obj, path.split('.'), value);
+}
+
 function createCallsFromReducers(prefix, reducers, dispatch) {
   const callNames = Object.keys(reducers);
   return _.zipObject(callNames, callNames.map(actionName => {
-    return (params) => dispatch({type: `${prefix}:${actionName}`, payload: params});
+    return params => dispatch({type: `${prefix}:${actionName}`, payload: params});
   }))
 }
 
@@ -88,6 +111,6 @@ function createConnectorForCollection(code, reducers, actions, convertData) {
   );
 }
 
-export function connCollection(convertData = (x) => x) {
+export function connCollection(convertData = x => x) {
   return createConnectorForCollection(baseCode, baseReducers, baseActions, convertData)
 }
