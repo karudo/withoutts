@@ -64,9 +64,10 @@ class Form extends React.Component {
           return this.context.PWForm.getValues(path);
         },
         subscribe: (model, func) => {
-          let value;
+          const path = `${this.props.model}.${model}`;
+          let value = this.context.PWForm.getValues(path);
           return this.listeners.subscribe(() => {
-            let nextValue = this.context.PWForm.getValues(`${this.props.model}.${model}`);
+            let nextValue = this.context.PWForm.getValues(path);
             if (value !== nextValue) {
               value = nextValue;
               func(value);
