@@ -41,7 +41,9 @@ export function createListenerCollection(): ListenerCollection {
       if (next === current) {
         next = current.slice();
       }
-      next.push(listener);
+      if (!cleared) {
+        next.push(listener);
+      }
 
       return function unsubscribe() {
         if (!isSubscribed || cleared) {

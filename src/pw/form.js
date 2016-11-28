@@ -34,45 +34,72 @@ class Form extends React.Component {
         ...this.props.values
       };
     }
+    this.initContext();
   }
 
   componentDidMount() {
     if (this.isSubForm) {
-      this.unsubscribe = this.context.PWForm.subscribe(() => {
-        const nextValue = this.context.PWForm.getValues(this.props.model);
-        if (this.curValue !== nextValue) {
-          this.curValue = nextValue;
-          this.listeners.notify();
-        }
-      });
+      this.unsubscribe = this.context.PWForm.subscribe(this.props.model, this.listeners.notify);
     }
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+    this.listeners.clear();
   }
 
   getChildContext() {
     return {
-      PWForm: {
+      PWForm: this.PWForm,
+    };
+  }
+
+  initContext() {
+    if (this.isSubForm) {
+      this.PWForm = {
         getValues: (model) => {
-          if (this.isSubForm) {
-            const path = `${this.props.model}.${model}`;
-            return this.context.PWForm.getValues(path);
-          }
-          return _.get(this.values, model);
+          const path = `${this.props.model}.${model}`;
+          return this.context.PWForm.getValues(path);
         },
-        subscribe: (func) => {
-          return this.listeners.subscribe(func);
+        subscribe: (model, func) => {
+          let value;
+          return this.listeners.subscribe(() => {
+            let nextValue = this.context.PWForm.getValues(`${this.props.model}.${model}`);
+            if (value !== nextValue) {
+              value = nextValue;
+              func(value);
+            }
+          });
         },
         set: (model, value) => {
-          if (this.isSubForm) {
-            const path = `${this.props.model}.${model}`;
-            return this.context.PWForm.set(path, value);
-          }
-          else {
-            this.values = immSet(this.values, model, value);
-            this.listeners.notify();
-          }
+          const path = `${this.props.model}.${model}`;
+          this.context.PWForm.set(path, value);
         }
-      },
-    };
+      };
+    }
+    else {
+      this.PWForm = {
+        getValues: (model) => {
+          return _.get(this.values, model);
+        },
+        subscribe: (model, func) => {
+          let value;
+          return this.listeners.subscribe(() => {
+            const nextValue = this.values[model];
+            if (value !== nextValue) {
+              value = nextValue;
+              func(value);
+            }
+          });
+        },
+        set: (model, value) => {
+          this.values = immSet(this.values, model, value);
+          this.listeners.notify();
+        }
+      };
+    }
   }
 
   render() {
@@ -92,8 +119,8 @@ class InputText extends React.Component {
     PWForm: PropTypes.any.isRequired,
   };
 
-  constructor(props, cont) {
-    super(props, cont);
+  constructor(props, context) {
+    super(props, context);
     this.state = {
       model: props.model,
       value: this.context.PWForm.getValues(props.model)
@@ -102,12 +129,13 @@ class InputText extends React.Component {
   }
 
   componentDidMount() {
-    this.unsubscribe = this.context.PWForm.subscribe(() => {
-      const value = this.context.PWForm.getValues(this.props.model);
-      if (this.state.value !== value) {
-        this.setState({value})
-      }
-    });
+    this.unsubscribe = this.context.PWForm.subscribe(this.props.model, value => this.setState({value}));
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
   }
 
   handleChange(e) {
