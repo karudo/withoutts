@@ -10,7 +10,10 @@ class Form extends React.Component {
 
   static propTypes = {
     values: PropTypes.object,
-    model: PropTypes.string
+    model: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number
+    ])
   };
 
   static contextTypes = {
@@ -24,7 +27,7 @@ class Form extends React.Component {
   static displayName = 'Form';
 
   componentWillMount() {
-    this.isSubForm = this.context && this.context.PWForm && this.props.model;
+    this.isSubForm = this.context && this.context.PWForm && this.props.hasOwnProperty('model');
     if (!this.isSubForm && !this.props.values) {
       throw new Error('Form needs model or values')
     }
@@ -115,6 +118,23 @@ class Form extends React.Component {
 
 //////////////////////////////////////////
 
+class Each extends React.Component {
+  static contextTypes = {
+    PWForm: PropTypes.any.isRequired,
+  };
+
+  render() {
+    const values = this.context.PWForm.getValues(this.props.model);
+    return (
+      <Form model={this.props.model}>
+        {values.map((_t, idx) => <Form key={idx} model={idx}>{this.props.children}</Form>)}
+      </Form>
+    );
+  }
+}
+
+//////////////////////////////////////////
+
 class InputText extends React.Component {
   static contextTypes = {
     PWForm: PropTypes.any.isRequired,
@@ -163,7 +183,14 @@ export default class FormTest extends React.Component {
       name: 'John',
       email: 'qwe@qwe.com',
       addr1: {street: 'Lenina'},
-      addr2: {street: 'Morskoi'}
+      addr2: {street: 'Morskoi'},
+      users: [{
+        login: 'qwe',
+        pass: 'zxc'
+      }, {
+        login: 'rrr',
+        pass: 'vvvv'
+      }]
     };
     return (
       <Form values={data}>
@@ -175,6 +202,10 @@ export default class FormTest extends React.Component {
         <Form model="addr2">
           <InputText model="street"/>
         </Form>
+        <Each model="users">
+          <InputText model="login"/>
+          <InputText model="pass"/>
+        </Each>
       </Form>
     );
   }
