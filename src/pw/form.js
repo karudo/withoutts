@@ -27,16 +27,21 @@ class Form extends React.Component {
   static displayName = 'Form';
 
   componentWillMount() {
-    this.isSubForm = this.context && this.context.PWForm && this.props.hasOwnProperty('model');
+    this.isSubForm = this.props.hasOwnProperty('model');
     if (!this.isSubForm && !this.props.values) {
       throw new Error('Form needs model or values')
     }
-    this.listeners = createListenerCollection();
-    if (!this.isSubForm) {
+    if (this.isSubForm) {
+      if (!(this.context && this.context.PWForm)) {
+        throw new Error('SubForm needs context');
+      }
+    }
+    else {
       this.values = {
         ...this.props.values
       };
     }
+    this.listeners = createListenerCollection();
     this.initContext();
   }
 
@@ -166,6 +171,7 @@ class InputText extends React.Component {
   render() {
     return (
       <div>
+        <span>{this.props.model}</span>
         <input type="text"
                onChange={this.handleChange}
                value={this.state.value}/>
@@ -175,6 +181,8 @@ class InputText extends React.Component {
 }
 
 //////////////////////////////////////////
+
+const SubForm = Form;
 
 export default class FormTest extends React.Component {
   render() {
@@ -196,12 +204,12 @@ export default class FormTest extends React.Component {
       <Form values={data}>
         <InputText model="name"/>
         <InputText model="email"/>
-        <Form model="addr1">
+        <SubForm model="addr1">
           <InputText model="street"/>
-        </Form>
-        <Form model="addr2">
+        </SubForm>
+        <SubForm model="addr2">
           <InputText model="street"/>
-        </Form>
+        </SubForm>
         <Each model="users">
           <InputText model="login"/>
           <InputText model="pass"/>
