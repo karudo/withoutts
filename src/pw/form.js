@@ -67,30 +67,30 @@ class Form extends React.Component {
   initContext() {
     if (this.isSubForm) {
       this.PWForm = {
-        getValues: (model) => {
+        getValue: (model) => {
           const path = `${this.props.model}.${model}`;
-          return this.context.PWForm.getValues(path);
+          return this.context.PWForm.getValue(path);
         },
         subscribe: (model, func) => {
           const path = `${this.props.model}.${model}`;
-          let value = this.context.PWForm.getValues(path);
+          let value = this.context.PWForm.getValue(path);
           return this.listeners.subscribe(() => {
-            let nextValue = this.context.PWForm.getValues(path);
+            let nextValue = this.context.PWForm.getValue(path);
             if (value !== nextValue) {
               value = nextValue;
               func(value);
             }
           });
         },
-        set: (model, value) => {
+        setValue: (model, value) => {
           const path = `${this.props.model}.${model}`;
-          this.context.PWForm.set(path, value);
+          this.context.PWForm.setValue(path, value);
         }
       };
     }
     else {
       this.PWForm = {
-        getValues: (model) => {
+        getValue: (model) => {
           return _.get(this.values, model);
         },
         subscribe: (model, func) => {
@@ -103,7 +103,7 @@ class Form extends React.Component {
             }
           });
         },
-        set: (model, value) => {
+        setValue: (model, value) => {
           this.values = immSet(this.values, model, value);
           this.listeners.notify();
         }
@@ -129,7 +129,7 @@ class Each extends React.Component {
   };
 
   render() {
-    const values = this.context.PWForm.getValues(this.props.model);
+    const values = this.context.PWForm.getValue(this.props.model);
     return (
       <Form model={this.props.model}>
         {values.map((_t, idx) => <Form key={idx} model={idx}>{this.props.children}</Form>)}
@@ -149,7 +149,7 @@ class InputText extends React.Component {
     super(props, context);
     this.state = {
       model: props.model,
-      value: this.context.PWForm.getValues(props.model)
+      value: this.context.PWForm.getValue(props.model)
     };
     this.handleChange = this.handleChange.bind(this);
   }
@@ -165,7 +165,7 @@ class InputText extends React.Component {
   }
 
   handleChange(e) {
-    this.context.PWForm.set(this.props.model, e.target.value);
+    this.context.PWForm.setValue(this.props.model, e.target.value);
   }
 
   render() {
@@ -186,12 +186,16 @@ const SubForm = Form;
 
 export default class FormTest extends React.Component {
   render() {
-    console.log('Rorm Render');
+    console.log('Form Render');
     const data = {
       name: 'John',
       email: 'qwe@qwe.com',
-      addr1: {street: 'Lenina'},
-      addr2: {street: 'Morskoi'},
+      addr1: {
+        street: 'Lenina'
+      },
+      addr2: {
+        street: 'Morskoi'
+      },
       users: [{
         login: 'qwe',
         pass: 'zxc'
