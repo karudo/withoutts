@@ -2,9 +2,9 @@ import * as React from 'react';
 import _ from 'lodash';
 const {PropTypes} = React;
 
-import {createListenerCollection} from './Subscription';
+import createListenerCollection from './tools/createListenerCollection';
 
-import {immSet} from './createSelector'
+import {immSet} from './tools/immutableUtils';
 
 class Form extends React.Component {
 

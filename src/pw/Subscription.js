@@ -3,6 +3,8 @@
 // well as nesting subscriptions of descendant components, so that we can ensure the
 // ancestor components re-render before descendants
 
+import createListenerCollection from './tools/createListenerCollection';
+
 import {Store} from 'redux';
 
 type AnyStore = Store<any>;
@@ -13,51 +15,6 @@ type ListenerCollection = {
   clear: VoidFunction;
   notify: VoidFunction;
   subscribe: (listener: VoidFunction) => VoidFunction
-}
-
-export function createListenerCollection(): ListenerCollection {
-  type Listeners = VoidFunction[];
-
-  let current: Listeners = [];
-  let next: Listeners = [];
-  let cleared = false;
-
-  return {
-    clear() {
-      next = [];
-      current = [];
-      cleared = true;
-    },
-
-    notify() {
-      const listeners = current = next;
-      for (let i = 0; i < listeners.length; i++) {
-        listeners[i]();
-      }
-    },
-
-    subscribe(listener: VoidFunction) {
-      let isSubscribed = true;
-      if (next === current) {
-        next = current.slice();
-      }
-      if (!cleared) {
-        next.push(listener);
-      }
-
-      return function unsubscribe() {
-        if (!isSubscribed || cleared) {
-          return;
-        }
-        isSubscribed = false;
-
-        if (next === current) {
-          next = current.slice();
-        }
-        next.splice(next.indexOf(listener), 1);
-      };
-    }
-  };
 }
 
 class Subscription {
