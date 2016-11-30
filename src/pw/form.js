@@ -6,6 +6,12 @@ import createListenerCollection from './tools/createListenerCollection';
 
 import {immSet} from './tools/immutableUtils';
 
+const defaultFieldMeta = {
+  changed: false,
+  error: false,
+  focused: false,
+};
+
 class Form extends React.Component {
 
   static propTypes = {
@@ -40,6 +46,7 @@ class Form extends React.Component {
       this.values = {
         ...this.props.values
       };
+      this.meta = {};
     }
     this.listeners = createListenerCollection();
     this.initContext();
@@ -67,20 +74,27 @@ class Form extends React.Component {
   initContext() {
     if (this.isSubForm) {
       this.PWForm = {
-        getValue: (model) => {
-          const path = `${this.props.model}.${model}`;
-          return this.context.PWForm.getValue(path);
-        },
         subscribe: (model, func) => {
-          const path = `${this.props.model}.${model}`;
-          let value = this.context.PWForm.getValue(path);
+          let value = this.PWForm.getValue(model);
           return this.listeners.subscribe(() => {
-            let nextValue = this.context.PWForm.getValue(path);
+            let nextValue = this.PWForm.getValue(model);
             if (value !== nextValue) {
               value = nextValue;
               func(value);
             }
           });
+        },
+        getMeta: (model) => {
+          const path = `${this.props.model}.${model}`;
+          return this.context.PWForm.getMeta(path);
+        },
+        setMeta: (model, metaUpdate) => {
+          const path = `${this.props.model}.${model}`;
+          this.context.PWForm.setMeta(path, metaUpdate);
+        },
+        getValue: (model) => {
+          const path = `${this.props.model}.${model}`;
+          return this.context.PWForm.getValue(path);
         },
         setValue: (model, value) => {
           const path = `${this.props.model}.${model}`;
@@ -90,9 +104,6 @@ class Form extends React.Component {
     }
     else {
       this.PWForm = {
-        getValue: (model) => {
-          return _.get(this.values, model);
-        },
         subscribe: (model, func) => {
           let value;
           return this.listeners.subscribe(() => {
@@ -103,8 +114,25 @@ class Form extends React.Component {
             }
           });
         },
+        getMeta: (model) => {
+          return this.meta[model] || defaultFieldMeta;
+        },
+        setMeta: (model, metaUpdate) => {
+          this.meta[model] = {
+            ...defaultFieldMeta,
+            ...this.meta[model],
+            ...metaUpdate
+          };
+          console.log(this.values, this.meta[model]);
+          this.values = immSet(this.values, model, _.get(this.values, model));
+          this.listeners.notify();
+        },
+        getValue: (model) => {
+          return _.get(this.values, model);
+        },
         setValue: (model, value) => {
           this.values = immSet(this.values, model, value);
+          this.PWForm.setMeta(model, {changed: true});
           this.listeners.notify();
         }
       };
@@ -152,6 +180,8 @@ class InputText extends React.Component {
       value: this.context.PWForm.getValue(props.model)
     };
     this.handleChange = this.handleChange.bind(this);
+    this.handleFocus = this.handleFocus.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
   }
 
   componentDidMount() {
@@ -168,13 +198,41 @@ class InputText extends React.Component {
     this.context.PWForm.setValue(this.props.model, e.target.value);
   }
 
+  handleFocus() {
+    this.context.PWForm.setMeta(this.props.model, {focused: true});
+  }
+
+  handleBlur({target: {value}}) {
+    const update = {focused: false};
+    if (Array.isArray(this.props.validators)) {
+      update.error = this.runValidators(value);
+    }
+    this.context.PWForm.setMeta(this.props.model, update);
+  }
+
+  runValidators(value) {
+    const {length} = this.props.validators;
+    for (let i = 0; i < length; i++) {
+      let res = this.props.validators[i](value);
+      if (res) {
+        return res;
+      }
+    }
+    return false;
+  }
+
   render() {
+    const meta = this.context.PWForm.getMeta(this.props.model);
+    console.log(meta);
     return (
       <div>
         <span>{this.props.model}</span>
         <input type="text"
                onChange={this.handleChange}
+               onFocus={this.handleFocus}
+               onBlur={this.handleBlur}
                value={this.state.value}/>
+        {meta.error && <div>{meta.error}</div>}
       </div>
     )
   }
@@ -206,7 +264,7 @@ export default class FormTest extends React.Component {
     };
     return (
       <Form values={data}>
-        <InputText model="name"/>
+        <InputText model="name" validators={[v => v === 'namee' && 'not namee!']}/>
         <InputText model="email"/>
         <SubForm model="addr1">
           <InputText model="street"/>
